@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+export TELEGRAF_CONFIG_PATH=/app/telegraf.conf
+
+/app/telegraf

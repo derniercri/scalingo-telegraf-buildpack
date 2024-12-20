@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -n "$BUILDPACK_DEBUG" ]; then
+    set -x
+fi
+
+BASE_DIR=$(dirname "$0")
+BUILD_DIR=${1:-}
+CACHE_DIR=${2:-}
+ENV_DIR=${3:-}
+
+
+TELEGRAF_VERSION=${TELEGRAF_VERSION:-1.33.0}
+TELEGRAF_SHA256_CHECKSUM=${TELEGRAF_SHA256_CHECKSUM:-4990ea362de7172e488024944819ce939712690ab539d9a90006b86b47ae45cb}
+
+TELEGRAF_ARCHIVE_FILENAME="telegraf-${TELEGRAF_VERSION}_linux_amd64.tar.gz"
+
+
+echo "-----> Downloading Telegraf ${TELEGRAF_VERSION}"
+
+cd $CACHE_DIR
+
+# TODO: use previously cached file if exists
+wget -q https://dl.influxdata.com/telegraf/releases/${TELEGRAF_ARCHIVE_FILENAME}
+echo "$TELEGRAF_SHA256_CHECKSUM ${TELEGRAF_ARCHIVE_FILENAME}"  | sha256sum -c -
+
+
+# Copy binary to $BUILD_DIR (usually /app)
+echo "-----> Extracting Telegraf"
+
+tar xf ${TELEGRAF_ARCHIVE_FILENAME} -C $BUILD_DIR --strip-components=4 ./telegraf-${TELEGRAF_VERSION}/usr/bin/telegraf
+
+echo "-----> Installing run script"
+mkdir -p "${BUILD_DIR}/bin"
+cp "${BASE_DIR}/run_telegraf" "${BUILD_DIR}/bin/run_telegraf"
